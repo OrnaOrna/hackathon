@@ -10,11 +10,15 @@ const char* password = "";
 const char* serverURL = "127.0.0.1";
 
 void WiFiConnect() {
+    /*
+    Connects to wifi. Call in setup()
+    */
+
     Serial.begin(115200);
     
     // Connect to WiFi
     Serial.println("Connecting to WiFi");
-    Wifi.begin(ssid, password);
+    WiFi.begin(ssid, password);
 
     // Wait until a connection is estabilished (timeout: 1min.)
     bool connected = false;
@@ -22,7 +26,7 @@ void WiFiConnect() {
     {
         Serial.print(".");
         delay(500);
-        if (Wifi.status() == WL_CONNECTED)
+        if (WiFi.status() == WL_CONNECTED)
         {
             connected = true;
             break;
@@ -33,21 +37,38 @@ void WiFiConnect() {
     {
         Serial.println("Connected to WiFi with IP address " + WiFi.localIP());
     } else {
-        Serial.println("There was an error connecting to WiFi. 
-        Check that you have an internet connection.");
+        Serial.println("There was an error connecting to WiFi. "
+        " Check that you have an internet connection.");
     }    
 }
 
 void sendAlert(char* location, float waterHeight, char* ID) {
+    /*
+    Sends an alert to the HTTP server.
+    */
+
     // If still connected to WiFi, connect to the server
     if (WiFi.status() == WL_CONNECTED)
     {
-        
+    
     }
     
 }
 
 
-JsonObject& generateAlert(char* location, float waterHeight, char* ID) {
-    StaticJSON<200> jsonBuffer;
+String generateAlert(char* location, float waterHeight, char* ID) {
+    /*
+    Generates a JSON alert from relevant parameters. The alert contains the sensor's location,
+    the water height recorded and the sensor's ID.
+    */
+    DynamicJsonDocument alert(1024);
+    alert["location"] = location;
+    alert["waterHeight"] = waterHeight;
+    alert["ID"] = ID;
+
+    // The output (serialized) JSON, returned as a string of text.
+    String output = "";
+    serializeJson(alert, output);
+
+    return output;
 }
