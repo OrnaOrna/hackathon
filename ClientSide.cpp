@@ -13,8 +13,6 @@ void WiFiConnect() {
     /*
     Connects to wifi. Call in setup()
     */
-
-    Serial.begin(115200);
     
     // Connect to WiFi
     Serial.println("Connecting to WiFi");
@@ -39,12 +37,12 @@ void WiFiConnect() {
     } else {
         Serial.println("There was an error connecting to WiFi. "
         " Check that you have an internet connection.");
-    }    
+    }
 }
 
-int sendAlert(String location, float waterHeight, String ID) {
+bool sendAlert(String location, float waterHeight, String ID) {
     /*
-    Sends an alert to the HTTP server.
+    Sends an alert to the HTTP server, returning whether the message was successfully sent.
     */
 
     // If still connected to WiFi, connect to the server
@@ -62,11 +60,13 @@ int sendAlert(String location, float waterHeight, String ID) {
         // Get the alert data from the parameters
         String alertText = generateAlert(location, waterHeight, ID);
 
+        // End the connection to free resources
+        http.end();
+
         // Send the alert to the server then return the response code.
-        return http.POST(alertText);
+        return (http.POST(alertText) == HTTP_CODE_ACCEPTED);
     }
 }
-
 
 String generateAlert(String location, float waterHeight, String ID) {
     /*
@@ -84,3 +84,42 @@ String generateAlert(String location, float waterHeight, String ID) {
 
     return output;
 }
+
+bool sendRequest(String ID) {
+    /*
+    Asks the server if the alert has been resolved, returning whether it was or not.
+    */
+
+    // If still connected to WiFi, connect to the server
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        WiFiClient client;
+        HTTPClient http;
+
+        // Begin the connection
+        http.begin(client, serverURL);
+
+        // Send a request for the alert's status to the server. This variable contains the response code.
+        int responseCode = http.GET();
+
+        // Get whether the message was sent
+        if (responseCode == HTTP_CODE_ACCEPTED)
+        {
+            String payload = http.getString();
+
+            // End the connection to free resources
+            http.end();
+
+            // Check whtether the alert has been resolved or not.
+            return strcmp(payload, "true");
+        } else {
+            // End the connection to free resources
+            http.end();
+
+            Serial.println("Error receiving status from server");
+            return false;
+        }
+        
+    }
+}
+

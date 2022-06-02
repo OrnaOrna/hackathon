@@ -2,7 +2,8 @@
 #define CLIENTSIDE_H
 
 void WiFiConnect();
-int sendAlert(char* location, float waterHeight, char* ID);
-String generateAlert(char* location, float waterHeight, char* ID);
+bool sendAlert(String location, float waterHeight, String ID);
+int generateAlert(String location, float waterHeight, String ID);
+bool sendRequest(String ID);
 
 #endif
