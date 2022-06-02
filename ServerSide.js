@@ -7,20 +7,29 @@ const host = '0.0.0.0';
 
 // A wrapper function for handling all requests from the clients.
 const requestHandler = function (request, response) {
+    // For queries, check the corresponding alert.
     if (request.method === "GET") {
-        console.log(request.url);
-        queryHandler(response, "");
-
+        
+        let unparsedID = request.url;
+        
+        if (unparsedID.startsWith("/?id=")) {
+            // Handle the query with the sensor's ID.
+            queryHandler(response, unparsedID.slice("/?id=".length));
+        } else {
+            response.writeHead(200);
+            response.end();
+        }
+    // For alerts, update the GUI.
     } else if (request.method === "POST") {
         alertHandler(response);
-
     }
-    response.writeHead(200);
-    response.end();
 };
 
 // A function for handling alerts from the clients
 const alertHandler = function (response) {
+    console.log(response.trailers);
+    response.writeHead(200);
+    response.end();
 
 };
 

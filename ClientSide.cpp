@@ -40,7 +40,7 @@ void WiFiConnect() {
     }
 }
 
-bool sendAlert(String location, float waterHeight, String ID) {
+bool sendAlert(const char* location, float waterHeight, const char* ID) {
     /*
     Sends an alert to the HTTP server, returning whether the message was successfully sent.
     */
@@ -68,7 +68,7 @@ bool sendAlert(String location, float waterHeight, String ID) {
     }
 }
 
-String generateAlert(String location, float waterHeight, String ID) {
+String generateAlert(const char* location, float waterHeight, String ID) {
     /*
     Generates a JSON alert from relevant parameters. The alert contains the sensor's location,
     the water height recorded and the sensor's ID.
@@ -85,7 +85,7 @@ String generateAlert(String location, float waterHeight, String ID) {
     return output;
 }
 
-bool sendRequest(String ID) {
+bool sendRequest(const char* ID) {
     /*
     Asks the server if the alert has been resolved, returning whether it was or not.
     */
@@ -97,7 +97,7 @@ bool sendRequest(String ID) {
         HTTPClient http;
 
         // Begin the connection
-        http.begin(client, serverURL + "/?id=" + ID);
+        http.begin(client, strcat(strcat(strdup(serverURL), "/?id="), strdup(ID)));
 
         // Send a request for the alert's status to the server. This variable contains the response code.
         int responseCode = http.GET();
@@ -110,8 +110,8 @@ bool sendRequest(String ID) {
             // End the connection to free resources
             http.end();
 
-            // Check whtether the alert has been resolved or not.
-            return strcmp(payload, "true");
+            // Check whtether the alert has been resolved or not.;
+            return strcmp(payload.c_str(), "true");
         } else {
             // End the connection to free resources
             http.end();
