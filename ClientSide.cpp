@@ -1,5 +1,5 @@
 #include <ArduinoJson.h>
-#include <HttpClient.h>
+#include <HTTPClient.h>
 #include <WiFi.h>
 
 // Replace later with relevant info
@@ -42,7 +42,7 @@ void WiFiConnect() {
     }    
 }
 
-void sendAlert(char* location, float waterHeight, char* ID) {
+int sendAlert(String location, float waterHeight, String ID) {
     /*
     Sends an alert to the HTTP server.
     */
@@ -50,13 +50,25 @@ void sendAlert(char* location, float waterHeight, char* ID) {
     // If still connected to WiFi, connect to the server
     if (WiFi.status() == WL_CONNECTED)
     {
-    
+        WiFiClient client;
+        HTTPClient http;
+
+        // Begin the connection
+        http.begin(client, serverURL);
+
+        // Specify the content-type header to specify we're sending JSON
+        http.addHeader("Content-Type",  "application/json");
+
+        // Get the alert data from the parameters
+        String alertText = generateAlert(location, waterHeight, ID);
+
+        // Send the alert to the server then return the response code.
+        return http.POST(alertText);
     }
-    
 }
 
 
-String generateAlert(char* location, float waterHeight, char* ID) {
+String generateAlert(String location, float waterHeight, String ID) {
     /*
     Generates a JSON alert from relevant parameters. The alert contains the sensor's location,
     the water height recorded and the sensor's ID.
