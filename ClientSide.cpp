@@ -6,8 +6,8 @@
 const char* ssid = "";
 const char* password = "";
 
-// The name/IP address of the server. As we are connetcing to localhost, this will be 127.0.0.1
-const char* serverURL = "127.0.0.1";
+// The name/IP address of the server.
+const char* serverURL = "10.176.95.1:8000";
 
 void WiFiConnect() {
     /*
@@ -97,7 +97,7 @@ bool sendRequest(String ID) {
         HTTPClient http;
 
         // Begin the connection
-        http.begin(client, serverURL);
+        http.begin(client, serverURL + "/?id=" + ID);
 
         // Send a request for the alert's status to the server. This variable contains the response code.
         int responseCode = http.GET();
