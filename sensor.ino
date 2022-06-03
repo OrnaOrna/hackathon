@@ -16,17 +16,27 @@ float distanceCm;
 // The threshold distance, when recording a distance under it for long enough send an alert.
 float threshold;
 
+// This variable counts the time since last sending an alert. After a certain time, a request will be sent to see
+// whether the alert was resolved
+int getCounter = 0;
+
+// Whether an alert was sent to the server recently.
+bool alerted = false;
+
+// A variable which will serve as a sort of lower threshold for determining whether an alert was resolved on its own.
+float  normalisedLastAverges;
+
 // Variables used for moving average calculation
 int currMinSamples = 0;
 float avgs[5];
 float samples[60];
 
 void setup() {
-    const char* ID = '3agnb6';
-    const char* location = '';
+    const char* ID = "3agnb6";
+    const char* location = "";
 
     bool alerted = false;
-    float  normalisedLastAvergess;
+    float  normalisedLastAverges;
 
     Serial.begin(115200);
     pinMode(trigPin, OUTPUT);
@@ -56,24 +66,39 @@ void loop() {
     if(currMinSamples == 60) {
         currMinSamples=0;
         for(int i = 1; i <= 4; ++i) {
-            avgs[i-1]=avgs[i];
+            avgs[i - 1] = avgs[i];
         }
         avgs[4] = 0;
-        for(i = 0; i < 60; i++) {
+        for(int i = 0; i < 60; i++) {
             avgs[4] += samples[i] / 60;
         }
 
-        // If the average distance from the last minute is lower than the threshold distance, and the send an alert
+        // If the average distance from the last minute is lower than the threshold distance, and there was not alert sent send an alert
         if (avgs[4] <= threshold) {
             if(alerted=false) {
                 sendAlert(location, avgs[4], ID, alerted);
-                normalisedLastAvergess=(avgs[0] + avgs[1] + avgs[2] + avgs[3])/threshold;
+                normalisedLastAverges=(avgs[0] + avgs[1] + avgs[2] + avgs[3]) / (4 * threshold);
             }
+            Serial.println('Alert!');
             alerted = true;
         }
-        else if(alerted = true&&avgs[4] > threshold*normalisedLastAvergess)  {
+        else if(alerted && avgs[4] > threshold * normalisedLastAverges)  {
+            // The water levels are down, send a message about that to the server
             alerted = false;
             sendAlert(location, avgs[4], ID, alerted);
+            Serial.println("The waters are down.")
+        }
+        
+        // Handle the case when the alert was manually resolved
+        if (alerted) {
+            ++getCounter;
+            if (getCounter % 30 === 0) {
+                if(!sendRequest(ID)) {
+                    Serial.println("Alert resolved.");
+                    alerted = false;
+                    getCounter = 0;
+                } 
+            }
         }
     }
     delay(1000);

@@ -1,4 +1,4 @@
-// import {addAlert, resolveAlert, isResolved} from App;
+import {addAlert, resolveAlert, isResolved} from App;
 
 const http = require('http');
 
@@ -37,9 +37,9 @@ const alertHandler = function (request, response) {
     request.on('end', () => {
         params = JSON.parse(data);
         if (params.resolved) {
-            // addAlert(params.location, params.waterHeight, params.ID);
+            addAlert(params.location, params.waterHeight, params.ID);
         } else {
-            // resolveAlert(params.ID);
+            resolveAlert(params.ID);
         }
         response.writeHead(200);
         response.end();
@@ -49,7 +49,7 @@ const alertHandler = function (request, response) {
 // A function for handling "Was alert resolved?" queries
 const queryHandler = function (response, ID) {
     response.writeHead(200);
-    response.end(/*isResolved(ID).toString()*/);
+    response.end(isResolved(ID).toString());
 };
 
 const server = http.createServer(requestHandler);

@@ -98,7 +98,7 @@ bool sendRequest(const char* ID) {
     {
         WiFiClient client;
         HTTPClient http;
-
+http.
         // Begin the connection
         http.begin(client, strcat(strcat(strdup(serverURL), "/?id="), strdup(ID)));
 
