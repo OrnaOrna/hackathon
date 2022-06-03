@@ -2,8 +2,8 @@
 #define CLIENTSIDE_H
 
 void WiFiConnect();
-bool sendAlert(String location, float waterHeight, String ID);
-int generateAlert(String location, float waterHeight, String ID);
-bool sendRequest(String ID);
+bool sendAlert(const char* location, float waterHeight, const char* ID, bool resolved);
+String generateAlert(const char* location, float waterHeight, const char* ID, bool resolved);
+bool sendRequest(const char* ID);
 
 #endif

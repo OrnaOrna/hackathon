@@ -3,11 +3,11 @@
 #include <WiFi.h>
 
 // Replace later with relevant info
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "AndroidAP5DE7";
+const char* password = "12345678";
 
 // The name/IP address of the server.
-const char* serverURL = "10.176.95.1:8000";
+const char* serverURL = "0.0.0.0:8000";
 
 void WiFiConnect() {
     /*
@@ -16,6 +16,7 @@ void WiFiConnect() {
     
     // Connect to WiFi
     Serial.println("Connecting to WiFi");
+    WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
 
     // Wait until a connection is estabilished (timeout: 1min.)
@@ -24,7 +25,7 @@ void WiFiConnect() {
     {
         Serial.print(".");
         delay(500);
-        if (WiFi.status() == WL_CONNECTED)
+        if (WiFi.waitForConnectResult() == WL_CONNECTED)
         {
             connected = true;
             break;
@@ -40,7 +41,25 @@ void WiFiConnect() {
     }
 }
 
-bool sendAlert(const char* location, float waterHeight, const char* ID) {
+String generateAlert(const char* location, float waterHeight, const char* ID, bool resolved) {
+    /*
+    Generates a JSON alert from relevant parameters. The alert contains the sensor's location,
+    the water height recorded and the sensor's ID.
+    */
+    DynamicJsonDocument alert(1024);
+    alert["location"] = location;
+    alert["waterHeight"] = waterHeight;
+    alert["ID"] = ID;
+    alert["resolved"] = resolved;
+
+    // The output (serialized) JSON, returned as a string of text.
+    String output = "";
+    serializeJson(alert, output);
+
+    return output;
+}
+
+bool sendAlert(const char* location, float waterHeight, const char* ID, bool resolved) {
     /*
     Sends an alert to the HTTP server, returning whether the message was successfully sent.
     */
@@ -58,7 +77,7 @@ bool sendAlert(const char* location, float waterHeight, const char* ID) {
         http.addHeader("Content-Type",  "application/json");
 
         // Get the alert data from the parameters
-        String alertText = generateAlert(location, waterHeight, ID);
+        String alertText = generateAlert(location, waterHeight, ID, resolved);
 
         // End the connection to free resources
         http.end();
@@ -68,22 +87,6 @@ bool sendAlert(const char* location, float waterHeight, const char* ID) {
     }
 }
 
-String generateAlert(const char* location, float waterHeight, String ID) {
-    /*
-    Generates a JSON alert from relevant parameters. The alert contains the sensor's location,
-    the water height recorded and the sensor's ID.
-    */
-    DynamicJsonDocument alert(1024);
-    alert["location"] = location;
-    alert["waterHeight"] = waterHeight;
-    alert["ID"] = ID;
-
-    // The output (serialized) JSON, returned as a string of text.
-    String output = "";
-    serializeJson(alert, output);
-
-    return output;
-}
 
 bool sendRequest(const char* ID) {
     /*
@@ -103,8 +106,7 @@ bool sendRequest(const char* ID) {
         int responseCode = http.GET();
 
         // Get whether the message was sent
-        if (responseCode == HTTP_CODE_ACCEPTED)
-        {
+        if (responseCode == HTTP_CODE_ACCEPTED) {
             String payload = http.getString();
 
             // End the connection to free resources

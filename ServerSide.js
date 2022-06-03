@@ -1,3 +1,5 @@
+// import {addAlert, resolveAlert, isResolved} from App;
+
 const http = require('http');
 
 
@@ -21,33 +23,36 @@ const requestHandler = function (request, response) {
         }
     // For alerts, update the GUI.
     } else if (request.method === "POST") {
-        alertHandler(response);
+        alertHandler(request, response);
     }
 };
 
 // A function for handling alerts from the clients
-const alertHandler = function (response) {
-    console.log(response.trailers);
-    response.writeHead(200);
-    response.end();
-
+const alertHandler = function (request, response) {
+    // Get the parameters from the request datastream
+    let data = '';
+    request.on('data', chunk => {
+        data += chunk;
+    });
+    request.on('end', () => {
+        params = JSON.parse(data);
+        if (params.resolved) {
+            // addAlert(params.location, params.waterHeight, params.ID);
+        } else {
+            // resolveAlert(params.ID);
+        }
+        response.writeHead(200);
+        response.end();
+    });
 };
 
 // A function for handling "Was alert resolved?" queries
 const queryHandler = function (response, ID) {
-
+    response.writeHead(200);
+    response.end(/*isResolved(ID).toString()*/);
 };
 
 const server = http.createServer(requestHandler);
 server.listen(port, host, () => {
     console.log(`Server listening on http://${host}:${port}`);
 });
-
-class Alert {
-    constructor(location, waterHeight, ID, resolved) {
-        this.location = location;
-        this.waterHeight = waterHeight;
-        this.ID = ID;
-        this.resolved = resolved;
-    }
-}
